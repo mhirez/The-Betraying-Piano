@@ -1,67 +1,59 @@
 import processing.sound.*;
 
+// =========================
 // Cursor
+// =========================
 PImage cursorImg;
 int cursorW = 40;
 int cursorH = 50;
 
-// Adjust these so the red dot sits exactly on the cursor tip
 int cursorTipOffsetX = 20;
 int cursorTipOffsetY = 18;
 
-// Turn this on/off for testing the real click point
-boolean showTipDebug = true;
+boolean showTipDebug = false;
 
-// White keys musically, but drawn BLACK
+int fakeCursorX, fakeCursorY;
+
+// =========================
+// White keys musically
+// (but drawn BLACK)
+// =========================
 int numWhiteKeys = 14;
 int[] keyX = new int[numWhiteKeys];
 int[] keyY = new int[numWhiteKeys];
 int[] keyW = new int[numWhiteKeys];
 int[] keyH = new int[numWhiteKeys];
 
-// Black keys musically, but drawn WHITE
+// =========================
+// Black keys musically
+// (but drawn WHITE)
+// =========================
 int blackW, blackH;
-
-// Store black key positions for detection
 int[] blackKeyX;
-int[] blackKeyIndex;
 int numBlackKeys = 0;
 
-// Pattern of musical black keys
 boolean[] blackPattern = { true, true, false, true, true, true, false };
 
+// =========================
+// Phase 6
+// =========================
+int pressCount = 0;
+int stage = 1;
+
+// =========================
 // Sound
+// =========================
 SinOsc[] whiteOsc = new SinOsc[numWhiteKeys];
 SinOsc[] blackOsc;
 
 float[] whiteFreq = {
-  261.63, // C4
-  293.66, // D4
-  329.63, // E4
-  349.23, // F4
-  392.00, // G4
-  440.00, // A4
-  493.88, // B4
-  523.25, // C5
-  587.33, // D5
-  659.25, // E5
-  698.46, // F5
-  783.99, // G5
-  880.00, // A5
-  987.77  // B5
+  261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88,
+  523.25, 587.33, 659.25, 698.46, 783.99, 880.00, 987.77
 };
 
 float[] blackFreq = {
-  277.18, // C#4
-  311.13, // D#4
-  369.99, // F#4
-  415.30, // G#4
-  466.16, // A#4
-  554.37, // C#5
-  622.25, // D#5
-  739.99, // F#5
-  830.61, // G#5
-  932.33  // A#5
+  277.18, 311.13, 369.99, 415.30, 466.16,
+  554.37, 622.25, 739.99, 830.61, 932.33
 };
 
 String[] whiteNames = {
@@ -75,17 +67,12 @@ String[] blackNames = {
 };
 
 void setup() {
-  // Screen setup
   size(900, 500);
   surface.setTitle("The Betraying Piano");
 
-  // Load cursor image
   cursorImg = loadImage("CURSOR.png");
-
-  // Hide default cursor
   noCursor();
 
-  // White keys musically, but drawn black
   int keyWidth = width / numWhiteKeys;
   int keyHeight = 300;
   int startY = 100;
@@ -97,7 +84,6 @@ void setup() {
     keyH[i] = keyHeight;
   }
 
-  // Black keys musically, but drawn white
   blackW = keyW[0] / 2;
   blackH = keyH[0] * 2 / 3;
 
@@ -109,42 +95,43 @@ void setup() {
   }
 
   blackKeyX = new int[count];
-  blackKeyIndex = new int[count];
   blackOsc = new SinOsc[count];
 
   int b = 0;
   for (int i = 0; i < numWhiteKeys - 1; i++) {
     if (blackPattern[i % 7]) {
       blackKeyX[b] = keyX[i] + keyW[i] - blackW / 2;
-      blackKeyIndex[b] = i;
       b++;
     }
   }
 
   numBlackKeys = count;
 
-  // Create one oscillator for each white key
   for (int i = 0; i < numWhiteKeys; i++) {
     whiteOsc[i] = new SinOsc(this);
   }
 
-  // Create one oscillator for each black key
   for (int i = 0; i < numBlackKeys; i++) {
     blackOsc[i] = new SinOsc(this);
   }
+
+  updateStage();
 }
 
 void draw() {
   background(137, 207, 240);
 
-  // Draw white keys musically, but filled black
+  fakeCursorX = constrain(mouseX, 0, width - cursorW);
+  fakeCursorY = constrain(mouseY, 0, height - cursorH);
+
+  // White keys musically, drawn black
   for (int i = 0; i < numWhiteKeys; i++) {
     fill(0);
     stroke(255);
     rect(keyX[i], keyY[i], keyW[i], keyH[i]);
   }
 
-  // Draw black keys musically, but filled white
+  // Black keys musically, drawn white
   for (int i = 0; i < numWhiteKeys - 1; i++) {
     if (blackPattern[i % 7]) {
       int x = keyX[i] + keyW[i] - blackW / 2;
@@ -156,14 +143,23 @@ void draw() {
     }
   }
 
-  // Draw cursor
-  image(cursorImg, mouseX, mouseY, cursorW, cursorH);
+  image(cursorImg, fakeCursorX, fakeCursorY, cursorW, cursorH);
+
+  if (showTipDebug) {
+    int tipX = fakeCursorX + cursorTipOffsetX;
+    int tipY = fakeCursorY + cursorTipOffsetY;
+
+    fill(255, 0, 0);
+    noStroke();
+    ellipse(tipX, tipY, 6, 6);
+  }
+
+  drawStageInfo();
 }
 
 void mousePressed() {
-  // Actual detection point = cursor tip, not top-left of image
-  int tipX = mouseX + cursorTipOffsetX;
-  int tipY = mouseY + cursorTipOffsetY;
+  int tipX = fakeCursorX + cursorTipOffsetX;
+  int tipY = fakeCursorY + cursorTipOffsetY;
 
   // Check black keys first
   for (int b = 0; b < numBlackKeys; b++) {
@@ -173,22 +169,57 @@ void mousePressed() {
     if (tipX >= x && tipX <= x + blackW &&
         tipY >= y && tipY <= y + blackH) {
 
-      println("Black key " + b + " clicked - " + blackNames[b] + " (drawn white)");
+      pressCount++;
+      updateStage();
+
+      println("Black key " + b + " clicked - " + blackNames[b] +
+              " (drawn white) | Press Count: " + pressCount +
+              " | Stage: " + stage);
+
       playNoteThread(blackOsc[b], blackFreq[b]);
       return;
     }
   }
 
-  // Then check white keys
+  // Then white keys
   for (int i = 0; i < numWhiteKeys; i++) {
     if (tipX >= keyX[i] && tipX <= keyX[i] + keyW[i] &&
         tipY >= keyY[i] && tipY <= keyY[i] + keyH[i]) {
 
-      println("White key " + i + " clicked - " + whiteNames[i] + " (drawn black)");
+      pressCount++;
+      updateStage();
+
+      println("White key " + i + " clicked - " + whiteNames[i] +
+              " (drawn black) | Press Count: " + pressCount +
+              " | Stage: " + stage);
+
       playNoteThread(whiteOsc[i], whiteFreq[i]);
       return;
     }
   }
+}
+
+void updateStage() {
+  if (pressCount <= 10) {
+    stage = 1;
+  } else if (pressCount <= 19) {
+    stage = 2;
+  } else {
+    stage = 3;
+  }
+}
+
+void drawStageInfo() {
+  fill(255);
+  stroke(0);
+  strokeWeight(2);
+  rect(15, 15, 220, 65);
+
+  fill(0);
+  textAlign(LEFT, TOP);
+  textSize(18);
+  text("Press Count: " + pressCount, 25, 25);
+  text("Stage: " + stage, 25, 50);
 }
 
 void playNoteThread(final SinOsc osc, final float freq) {
@@ -196,12 +227,13 @@ void playNoteThread(final SinOsc osc, final float freq) {
     public void run() {
       osc.stop();
       osc.freq(freq);
-      osc.amp(0.7);
+      osc.amp(0.6);
       osc.play();
 
       try {
         Thread.sleep(250);
-      } catch (InterruptedException e) {
+      }
+      catch (InterruptedException e) {
       }
 
       osc.stop();
