@@ -158,16 +158,6 @@ void draw() {
 
   // Draw cursor
   image(cursorImg, mouseX, mouseY, cursorW, cursorH);
-
-  // Debug red dot = actual click point
-  if (showTipDebug) {
-    int tipX = mouseX + cursorTipOffsetX;
-    int tipY = mouseY + cursorTipOffsetY;
-
-    fill(255, 0, 0);
-    noStroke();
-    ellipse(tipX, tipY, 6, 6);
-  }
 }
 
 void mousePressed() {
