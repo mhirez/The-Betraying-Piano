@@ -206,7 +206,7 @@ void playNoteThread(final SinOsc osc, final float freq) {
     public void run() {
       osc.stop();
       osc.freq(freq);
-      osc.amp(0.3);
+      osc.amp(0.7);
       osc.play();
 
       try {
