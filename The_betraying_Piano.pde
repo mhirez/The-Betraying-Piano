@@ -1,23 +1,21 @@
-import processing.sound.*;
-import java.util.ArrayList;
-import java.awt.Desktop;
-import java.net.URI;
+import processing.sound.*;   // AI-assisted
+import java.util.ArrayList;  // AI-assisted
+import java.awt.Desktop;     // AI-assisted
+import java.net.URI;         // AI-assisted
 
 // =========================
 // Cursor
 // =========================
-PImage cursorImg;
-int cursorW = 40;
-int cursorH = 50;
+PImage cursorImg; // AI-assisted
+int cursorW = 40; // AI-assisted
+int cursorH = 50; // AI-assisted
 
-int cursorTipOffsetX = 20;
-int cursorTipOffsetY = 18;
+int cursorTipOffsetX = 20; // Shared
+int cursorTipOffsetY = 18; // Shared
 
-boolean showTipDebug = false;
-
-int fakeCursorX, fakeCursorY;
-int prevMouseX, prevMouseY;
-boolean cursorInitialized = false;
+int fakeCursorX, fakeCursorY; // Human logic
+int prevMouseX, prevMouseY;   // Human logic
+boolean cursorInitialized = false; // Shared
 
 // =========================
 // Stage system
@@ -25,69 +23,69 @@ boolean cursorInitialized = false;
 // Stage 2 = 11-19
 // Stage 3 = 20+
 // =========================
-int pressCount = 0;
-int stage = 1;
+int pressCount = 0; // Human logic
+int stage = 1;      // Human logic
 
 // =========================
 // White keys musically
 // (but drawn BLACK)
 // =========================
-int numWhiteKeys = 14;
-int[] keyX = new int[numWhiteKeys];
-int[] keyY = new int[numWhiteKeys];
-int[] keyW = new int[numWhiteKeys];
-int[] keyH = new int[numWhiteKeys];
+int numWhiteKeys = 14; // Shared
+int[] keyX = new int[numWhiteKeys]; // AI-assisted
+int[] keyY = new int[numWhiteKeys]; // AI-assisted
+int[] keyW = new int[numWhiteKeys]; // AI-assisted
+int[] keyH = new int[numWhiteKeys]; // AI-assisted
 
-int[] currentWhiteX = new int[numWhiteKeys];
-int[] currentWhiteY = new int[numWhiteKeys];
-int[] currentWhiteW = new int[numWhiteKeys];
-int[] currentWhiteH = new int[numWhiteKeys];
+int[] currentWhiteX = new int[numWhiteKeys]; // AI-assisted
+int[] currentWhiteY = new int[numWhiteKeys]; // AI-assisted
+int[] currentWhiteW = new int[numWhiteKeys]; // AI-assisted
+int[] currentWhiteH = new int[numWhiteKeys]; // AI-assisted
 
-boolean[] whiteVisible = new boolean[numWhiteKeys];
-boolean[] whiteBroken = new boolean[numWhiteKeys];
+boolean[] whiteVisible = new boolean[numWhiteKeys]; // Shared
+boolean[] whiteBroken = new boolean[numWhiteKeys];  // Human logic
 
 // =========================
 // Black keys musically
 // (but drawn WHITE)
 // =========================
-int blackW, blackH;
-int[] blackKeyX;
-int numBlackKeys = 0;
+int numBlackKeys = 10; // Shared
+int blackW, blackH; // AI-assisted
+int[] blackKeyX = new int[numBlackKeys];    // AI-assisted
 
-int[] currentBlackX;
-int[] currentBlackY;
-int[] currentBlackW;
-int[] currentBlackH;
+int[] currentBlackX = new int[numBlackKeys]; // AI-assisted
+int[] currentBlackY = new int[numBlackKeys]; // AI-assisted
+int[] currentBlackW = new int[numBlackKeys]; // AI-assisted
+int[] currentBlackH = new int[numBlackKeys]; // AI-assisted
 
-boolean[] blackVisible;
-boolean[] blackBroken;
+boolean[] blackVisible = new boolean[numBlackKeys]; // Shared
+boolean[] blackBroken = new boolean[numBlackKeys];  // Human logic
 
-boolean[] blackPattern = { true, true, false, true, true, true, false };
+boolean[] blackPattern = { true, true, false, true, true, true, false }; // Shared
 
 // =========================
 // Sound
 // =========================
-SinOsc[] whiteOsc = new SinOsc[numWhiteKeys];
-SinOsc[] blackOsc;
+SinOsc[] whiteOsc = new SinOsc[numWhiteKeys]; // AI-assisted
+SinOsc[] blackOsc = new SinOsc[numBlackKeys]; // AI-assisted
 
-ArrayList<SinOsc> hauntingOscs = new ArrayList<SinOsc>();
+ArrayList<SinOsc> hauntingOscs = new ArrayList<SinOsc>(); // Human logic
 
-float[] whiteFreq = {
+float[] whiteFreq = { // Shared
   261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88,
   523.25, 587.33, 659.25, 698.46, 783.99, 880.00, 987.77
 };
 
-float[] blackFreq = {
+float[] blackFreq = { // Shared
   277.18, 311.13, 369.99, 415.30, 466.16,
   554.37, 622.25, 739.99, 830.61, 932.33
 };
 
-String[] whiteNames = {
+String[] whiteNames = { // Shared
   "C4", "D4", "E4", "F4", "G4", "A4", "B4",
   "C5", "D5", "E5", "F5", "G5", "A5", "B5"
 };
 
-String[] blackNames = {
+String[] blackNames = { // Shared
   "C#4", "D#4", "F#4", "G#4", "A#4",
   "C#5", "D#5", "F#5", "G#5", "A#5"
 };
@@ -95,600 +93,559 @@ String[] blackNames = {
 // =========================
 // Phase 7 visual feedback
 // =========================
-int pressedWhiteIndex = -1;
-int pressedBlackIndex = -1;
-int pressedUntil = 0;
+int pressedWhiteIndex = -1; // Shared
+int pressedBlackIndex = -1; // Shared
+int pressedUntil = 0;       // Shared
 
 // =========================
 // Phase 7 movement / drift
 // =========================
-float driftX = 0;
-float driftY = 0;
-float driftVX = 0.35;
-float driftVY = 0.08;
+float driftX = 0;    // Human logic
+float driftY = 0;    // Human logic
+float driftVX = 0.35; // Human logic
+float driftVY = 0.08; // Human logic
 
 // =========================
 // Phase 7 setup flags
 // =========================
-boolean stage2FlawsInitialized = false;
-boolean stage3FlawsInitialized = false;
+boolean stage2FlawsInitialized = false; // Human logic
+boolean stage3FlawsInitialized = false; // Human logic
 
 // Optional surprise
-boolean enableYouTubeSurprise = true;
+boolean enableYouTubeSurprise = true; // Human logic
 
-void setup() {
-  size(900, 500);
-  surface.setTitle("The Betraying Piano");
+void setup() { // Shared
+  size(900, 500); // AI-assisted
+  surface.setTitle("The Betraying Piano"); // Shared
 
-  cursorImg = loadImage("CURSOR.png");
-  noCursor();
+  cursorImg = loadImage("CURSOR.png"); // AI-assisted
+  noCursor(); // Human logic
 
-  int keyWidth = width / numWhiteKeys;
-  int keyHeight = 300;
-  int startY = 100;
+  int keyWidth = width / numWhiteKeys; // AI-assisted
+  int keyHeight = 300; // AI-assisted
+  int startY = 100; // AI-assisted
 
-  for (int i = 0; i < numWhiteKeys; i++) {
-    keyX[i] = i * keyWidth;
-    keyY[i] = startY;
-    keyW[i] = keyWidth;
-    keyH[i] = keyHeight;
+  for (int i = 0; i < numWhiteKeys; i++) { // AI-assisted
+    keyX[i] = i * keyWidth; // AI-assisted
+    keyY[i] = startY; // AI-assisted
+    keyW[i] = keyWidth; // AI-assisted
+    keyH[i] = keyHeight; // AI-assisted
 
-    currentWhiteX[i] = keyX[i];
-    currentWhiteY[i] = keyY[i];
-    currentWhiteW[i] = keyW[i];
-    currentWhiteH[i] = keyH[i];
+    currentWhiteX[i] = keyX[i]; // AI-assisted
+    currentWhiteY[i] = keyY[i]; // AI-assisted
+    currentWhiteW[i] = keyW[i]; // AI-assisted
+    currentWhiteH[i] = keyH[i]; // AI-assisted
 
-    whiteVisible[i] = true;
-    whiteBroken[i] = false;
+    whiteVisible[i] = true; // Shared
+    whiteBroken[i] = false; // Shared
   }
 
-  blackW = keyW[0] / 2;
-  blackH = keyH[0] * 2 / 3;
+  blackW = keyW[0] / 2; // AI-assisted
+  blackH = keyH[0] * 2 / 3; // AI-assisted
 
-  int count = 0;
-  for (int i = 0; i < numWhiteKeys - 1; i++) {
-    if (blackPattern[i % 7]) {
-      count++;
+ 
+  int b = 0; // AI-assisted
+  for (int i = 0; i < numWhiteKeys - 1; i++) { // AI-assisted
+    if (blackPattern[i % 7]) { // AI-assisted
+      blackKeyX[b] = keyX[i] + keyW[i] - blackW / 2; // AI-assisted
+      currentBlackX[b] = blackKeyX[b]; // AI-assisted
+      currentBlackY[b] = keyY[0]; // AI-assisted
+      currentBlackW[b] = blackW; // AI-assisted
+      currentBlackH[b] = blackH; // AI-assisted
+      blackVisible[b] = true; // Shared
+      blackBroken[b] = false; // Shared
+      b++; // AI-assisted
     }
   }
 
-  numBlackKeys = count;
-
-  blackKeyX = new int[numBlackKeys];
-  currentBlackX = new int[numBlackKeys];
-  currentBlackY = new int[numBlackKeys];
-  currentBlackW = new int[numBlackKeys];
-  currentBlackH = new int[numBlackKeys];
-  blackVisible = new boolean[numBlackKeys];
-  blackBroken = new boolean[numBlackKeys];
-  blackOsc = new SinOsc[numBlackKeys];
-
-  int b = 0;
-  for (int i = 0; i < numWhiteKeys - 1; i++) {
-    if (blackPattern[i % 7]) {
-      blackKeyX[b] = keyX[i] + keyW[i] - blackW / 2;
-      currentBlackX[b] = blackKeyX[b];
-      currentBlackY[b] = keyY[0];
-      currentBlackW[b] = blackW;
-      currentBlackH[b] = blackH;
-      blackVisible[b] = true;
-      blackBroken[b] = false;
-      b++;
-    }
+  for (int i = 0; i < numWhiteKeys; i++) { // AI-assisted
+    whiteOsc[i] = new SinOsc(this); // AI-assisted
   }
 
-  for (int i = 0; i < numWhiteKeys; i++) {
-    whiteOsc[i] = new SinOsc(this);
+  for (int i = 0; i < numBlackKeys; i++) { // AI-assisted
+    blackOsc[i] = new SinOsc(this); // AI-assisted
   }
 
-  for (int i = 0; i < numBlackKeys; i++) {
-    blackOsc[i] = new SinOsc(this);
-  }
-
-  updateStage();
+  updateStage(); // Human logic
 }
 
-void draw() {
-  background(137, 207, 240);
+void draw() { // Shared
+  background(137, 207, 240); // AI-assisted
 
-  updateCursor();
-  updateDrift();
-  updateKeyGeometry();
-  drawWhiteKeys();
-  drawBlackKeys();
+  updateCursor(); // Human logic
+  updateDrift(); // Human logic
+  updateKeyGeometry(); // Shared
+  drawWhiteKeys(); // AI-assisted
+  drawBlackKeys(); // AI-assisted
 
-  image(cursorImg, fakeCursorX, fakeCursorY, cursorW, cursorH);
+  image(cursorImg, fakeCursorX, fakeCursorY, cursorW, cursorH); // AI-assisted
 
-  if (showTipDebug) {
-    int tipX = fakeCursorX + cursorTipOffsetX;
-    int tipY = fakeCursorY + cursorTipOffsetY;
-
-    fill(255, 0, 0);
-    noStroke();
-    ellipse(tipX, tipY, 6, 6);
-  }
-
-  drawStageInfo();
+  drawStageInfo(); // Shared
 }
 
-void updateCursor() {
-  if (!cursorInitialized) {
-    fakeCursorX = constrain(mouseX, 0, width - cursorW);
-    fakeCursorY = constrain(mouseY, 0, height - cursorH);
-    prevMouseX = mouseX;
-    prevMouseY = mouseY;
-    cursorInitialized = true;
+void updateCursor() { // Human logic
+  if (!cursorInitialized) { // Shared
+    fakeCursorX = constrain(mouseX, 0, width - cursorW); // Shared
+    fakeCursorY = constrain(mouseY, 0, height - cursorH); // Shared
+    prevMouseX = mouseX; // Shared
+    prevMouseY = mouseY; // Shared
+    cursorInitialized = true; // Shared
     return;
   }
 
-  int dx = mouseX - prevMouseX;
-  int dy = mouseY - prevMouseY;
+  int dx = mouseX - prevMouseX; // Shared
+  int dy = mouseY - prevMouseY; // Shared
 
-  if (stage >= 3) {
+  if (stage >= 3) { // Human logic
     // Cursed Cursor
-    fakeCursorX -= dx;
-    fakeCursorY -= dy;
+    fakeCursorX -= dx; // Human logic
+    fakeCursorY -= dy; // Human logic
   } else {
-    fakeCursorX += dx;
-    fakeCursorY += dy;
+    fakeCursorX += dx; // Shared
+    fakeCursorY += dy; // Shared
   }
 
-  fakeCursorX = constrain(fakeCursorX, 0, width - cursorW);
-  fakeCursorY = constrain(fakeCursorY, 0, height - cursorH);
+  fakeCursorX = constrain(fakeCursorX, 0, width - cursorW); // Shared
+  fakeCursorY = constrain(fakeCursorY, 0, height - cursorH); // Shared
 
-  prevMouseX = mouseX;
-  prevMouseY = mouseY;
+  prevMouseX = mouseX; // Shared
+  prevMouseY = mouseY; // Shared
 }
 
-void updateDrift() {
-  if (stage >= 3) {
+void updateDrift() { // Human logic
+  if (stage >= 3) { // Human logic
     // Piano Drift
-    driftX += driftVX;
-    driftY += driftVY;
+    driftX += driftVX; // Human logic
+    driftY += driftVY; // Human logic
   }
 }
 
-void updateKeyGeometry() {
-  int driftOffsetX = round(driftX);
-  int driftOffsetY = round(driftY);
+void updateKeyGeometry() { // Shared
+  int driftOffsetX = round(driftX); // Shared
+  int driftOffsetY = round(driftY); // Shared
 
-  for (int i = 0; i < numWhiteKeys; i++) {
-    currentWhiteX[i] = keyX[i] + driftOffsetX;
-    currentWhiteY[i] = keyY[i] + driftOffsetY;
+  for (int i = 0; i < numWhiteKeys; i++) { // Shared
+    currentWhiteX[i] = keyX[i] + driftOffsetX; // Shared
+    currentWhiteY[i] = keyY[i] + driftOffsetY; // Shared
 
-    if (stage >= 3) {
+    if (stage >= 3) { // Human logic
       // Key Deformation
-      currentWhiteW[i] = max(28, keyW[i] + int(random(-18, 19)));
-      currentWhiteH[i] = max(150, keyH[i] + int(random(-35, 36)));
+      currentWhiteW[i] = max(28, keyW[i] + int(random(-18, 19))); // Shared
+      currentWhiteH[i] = max(150, keyH[i] + int(random(-35, 36))); // Shared
     } else {
-      currentWhiteW[i] = keyW[i];
-      currentWhiteH[i] = keyH[i];
+      currentWhiteW[i] = keyW[i]; // AI-assisted
+      currentWhiteH[i] = keyH[i]; // AI-assisted
     }
   }
 
-  for (int b = 0; b < numBlackKeys; b++) {
-    currentBlackX[b] = blackKeyX[b] + driftOffsetX;
-    currentBlackY[b] = keyY[0] + driftOffsetY;
+  for (int b = 0; b < numBlackKeys; b++) { // Shared
+    currentBlackX[b] = blackKeyX[b] + driftOffsetX; // Shared
+    currentBlackY[b] = keyY[0] + driftOffsetY; // Shared
 
-    if (stage >= 3) {
+    if (stage >= 3) { // Human logic
       // Key Deformation
-      currentBlackW[b] = max(14, blackW + int(random(-8, 9)));
-      currentBlackH[b] = max(85, blackH + int(random(-20, 21)));
+      currentBlackW[b] = max(14, blackW + int(random(-8, 9))); // Shared
+      currentBlackH[b] = max(85, blackH + int(random(-20, 21))); // Shared
     } else {
-      currentBlackW[b] = blackW;
-      currentBlackH[b] = blackH;
+      currentBlackW[b] = blackW; // AI-assisted
+      currentBlackH[b] = blackH; // AI-assisted
     }
   }
 }
 
-void drawWhiteKeys() {
-  for (int i = 0; i < numWhiteKeys; i++) {
-    if (!whiteVisible[i]) {
+void drawWhiteKeys() { // AI-assisted
+  for (int i = 0; i < numWhiteKeys; i++) { // AI-assisted
+    if (!whiteVisible[i]) { // Shared
       continue;
     }
 
-    boolean showFeedback = (stage < 3) && (millis() < pressedUntil) && (pressedWhiteIndex == i);
+    boolean showFeedback = (stage < 3) && (millis() < pressedUntil) && (pressedWhiteIndex == i); // Shared
 
-    if (showFeedback) {
-      fill(70, 150, 255);
+    if (showFeedback) { // Shared
+      fill(70, 150, 255); // AI-assisted
     } else {
-      fill(0);
+      fill(0); // AI-assisted
     }
 
-    stroke(255);
-    rect(currentWhiteX[i], currentWhiteY[i], currentWhiteW[i], currentWhiteH[i]);
+    stroke(255); // AI-assisted
+    rect(currentWhiteX[i], currentWhiteY[i], currentWhiteW[i], currentWhiteH[i]); // AI-assisted
   }
 }
 
-void drawBlackKeys() {
-  for (int b = 0; b < numBlackKeys; b++) {
-    if (!blackVisible[b]) {
+void drawBlackKeys() { // AI-assisted
+  for (int b = 0; b < numBlackKeys; b++) { // AI-assisted
+    if (!blackVisible[b]) { // Shared
       continue;
     }
 
-    boolean showFeedback = (stage < 3) && (millis() < pressedUntil) && (pressedBlackIndex == b);
+    boolean showFeedback = (stage < 3) && (millis() < pressedUntil) && (pressedBlackIndex == b); // Shared
 
-    if (showFeedback) {
-      fill(255, 230, 90);
+    if (showFeedback) { // Shared
+      fill(255, 230, 90); // AI-assisted
     } else {
-      fill(255);
+      fill(255); // AI-assisted
     }
 
-    stroke(0);
-    rect(currentBlackX[b], currentBlackY[b], currentBlackW[b], currentBlackH[b]);
+    stroke(0); // AI-assisted
+    rect(currentBlackX[b], currentBlackY[b], currentBlackW[b], currentBlackH[b]); // AI-assisted
   }
 }
 
-void mousePressed() {
-  int tipX = fakeCursorX + cursorTipOffsetX;
-  int tipY = fakeCursorY + cursorTipOffsetY;
+void mousePressed() { // Shared
+  int tipX = fakeCursorX + cursorTipOffsetX; // Human logic
+  int tipY = fakeCursorY + cursorTipOffsetY; // Human logic
 
   // Check black keys first
-  for (int b = 0; b < numBlackKeys; b++) {
-    if (!blackVisible[b]) {
+  for (int b = 0; b < numBlackKeys; b++) { // AI-assisted
+    if (!blackVisible[b]) { // Shared
       continue;
     }
 
     if (tipX >= currentBlackX[b] && tipX <= currentBlackX[b] + currentBlackW[b] &&
-        tipY >= currentBlackY[b] && tipY <= currentBlackY[b] + currentBlackH[b]) {
-      handleBlackKeyPress(b);
+        tipY >= currentBlackY[b] && tipY <= currentBlackY[b] + currentBlackH[b]) { // Shared
+      handleBlackKeyPress(b); // Human logic
       return;
     }
   }
 
   // Then white keys
-  for (int i = 0; i < numWhiteKeys; i++) {
-    if (!whiteVisible[i]) {
+  for (int i = 0; i < numWhiteKeys; i++) { // AI-assisted
+    if (!whiteVisible[i]) { // Shared
       continue;
     }
 
     if (tipX >= currentWhiteX[i] && tipX <= currentWhiteX[i] + currentWhiteW[i] &&
-        tipY >= currentWhiteY[i] && tipY <= currentWhiteY[i] + currentWhiteH[i]) {
-      handleWhiteKeyPress(i);
+        tipY >= currentWhiteY[i] && tipY <= currentWhiteY[i] + currentWhiteH[i]) { // Shared
+      handleWhiteKeyPress(i); // Human logic
       return;
     }
   }
 }
 
-void handleBlackKeyPress(int b) {
-  pressCount++;
-  updateStage();
+void handleBlackKeyPress(int b) { // Shared
+  pressCount++; // Human logic
+  updateStage(); // Human logic
 
-  if (stage < 3) {
-    pressedBlackIndex = b;
-    pressedWhiteIndex = -1;
-    pressedUntil = millis() + 140;
+  if (stage < 3) { // Shared
+    pressedBlackIndex = b; // Shared
+    pressedWhiteIndex = -1; // Shared
+    pressedUntil = millis() + 140; // Shared
   }
 
   // Nope Key
-  if (blackBroken[b]) {
+  if (blackBroken[b]) { // Human logic
     println("Black key " + b + " clicked - " + blackNames[b] +
             " (drawn white) | Nope Key | Press Count: " + pressCount +
-            " | Stage: " + stage);
-    maybeTriggerYouTubeSurprise();
+            " | Stage: " + stage); // Shared
+    maybeTriggerYouTubeSurprise(); // Human logic
     return;
   }
 
-  float playedFreq = blackFreq[b];
-  String playedName = blackNames[b];
-  boolean lied = false;
-  int delayMs = 0;
-  boolean haunted = false;
-  boolean retired = false;
+  float playedFreq = blackFreq[b]; // Shared
+  String playedName = blackNames[b]; // Shared
+  boolean lied = false; // Human logic
+  int delayMs = 0; // Human logic
+  boolean haunted = false; // Human logic
+  boolean retired = false; // Human logic
 
   // Note Liar
-  if (stage >= 2 && random(1) < 0.30) {
-    playedFreq = getRandomDifferentFrequency(playedFreq);
-    playedName = getNoteNameForFrequency(playedFreq);
-    lied = true;
+  if (stage >= 2 && random(1) < 0.30) { // Human logic
+    playedFreq = getRandomDifferentFrequency(playedFreq); // Shared
+    playedName = getNoteNameForFrequency(playedFreq); // Shared
+    lied = true; // Human logic
   }
 
   // Sound Delay
-  if (stage >= 2 && random(1) < 0.35) {
-    delayMs = int(random(150, 601));
+  if (stage >= 2 && random(1) < 0.35) { // Human logic
+    delayMs = int(random(150, 601)); // Shared
   }
 
   // Audio Haunting
-  if (stage >= 3 && random(1) < 0.25) {
-    haunted = true;
+  if (stage >= 3 && random(1) < 0.25) { // Human logic
+    haunted = true; // Human logic
   }
 
   // Key Retirement
-  if (stage >= 2 && countVisibleBlackKeys() > 3 && random(1) < 0.18) {
-    blackVisible[b] = false;
-    retired = true;
+  if (stage >= 2 && countVisibleBlackKeys() > 3 && random(1) < 0.18) { // Human logic
+    blackVisible[b] = false; // Human logic
+    retired = true; // Human logic
   }
 
   println("Black key " + b + " clicked - " + blackNames[b] +
           " (drawn white) | Played: " + playedName +
           formatFlawText(lied, delayMs, haunted, retired) +
           " | Press Count: " + pressCount +
-          " | Stage: " + stage);
+          " | Stage: " + stage); // Shared
 
-  playKeyWithFlaws(blackOsc[b], playedFreq, delayMs, haunted);
-  maybeTriggerYouTubeSurprise();
+  playKeyWithFlaws(blackOsc[b], playedFreq, delayMs, haunted); // Shared
+  maybeTriggerYouTubeSurprise(); // Human logic
 }
 
-void handleWhiteKeyPress(int i) {
-  pressCount++;
-  updateStage();
+void handleWhiteKeyPress(int i) { // Shared
+  pressCount++; // Human logic
+  updateStage(); // Human logic
 
-  if (stage < 3) {
-    pressedWhiteIndex = i;
-    pressedBlackIndex = -1;
-    pressedUntil = millis() + 140;
+  if (stage < 3) { // Shared
+    pressedWhiteIndex = i; // Shared
+    pressedBlackIndex = -1; // Shared
+    pressedUntil = millis() + 140; // Shared
   }
 
   // Nope Key
-  if (whiteBroken[i]) {
+  if (whiteBroken[i]) { // Human logic
     println("White key " + i + " clicked - " + whiteNames[i] +
             " (drawn black) | Nope Key | Press Count: " + pressCount +
-            " | Stage: " + stage);
-    maybeTriggerYouTubeSurprise();
+            " | Stage: " + stage); // Shared
+    maybeTriggerYouTubeSurprise(); // Human logic
     return;
   }
 
-  float playedFreq = whiteFreq[i];
-  String playedName = whiteNames[i];
-  boolean lied = false;
-  int delayMs = 0;
-  boolean haunted = false;
-  boolean retired = false;
+  float playedFreq = whiteFreq[i]; // Shared
+  String playedName = whiteNames[i]; // Shared
+  boolean lied = false; // Human logic
+  int delayMs = 0; // Human logic
+  boolean haunted = false; // Human logic
+  boolean retired = false; // Human logic
 
   // Note Liar
-  if (stage >= 2 && random(1) < 0.30) {
-    playedFreq = getRandomDifferentFrequency(playedFreq);
-    playedName = getNoteNameForFrequency(playedFreq);
-    lied = true;
+  if (stage >= 2 && random(1) < 0.30) { // Human logic
+    playedFreq = getRandomDifferentFrequency(playedFreq); // Shared
+    playedName = getNoteNameForFrequency(playedFreq); // Shared
+    lied = true; // Human logic
   }
 
   // Sound Delay
-  if (stage >= 2 && random(1) < 0.35) {
-    delayMs = int(random(150, 601));
+  if (stage >= 2 && random(1) < 0.35) { // Human logic
+    delayMs = int(random(150, 601)); // Shared
   }
 
   // Audio Haunting
-  if (stage >= 3 && random(1) < 0.25) {
-    haunted = true;
+  if (stage >= 3 && random(1) < 0.25) { // Human logic
+    haunted = true; // Human logic
   }
 
   // Key Retirement
-  if (stage >= 2 && countVisibleWhiteKeys() > 6 && random(1) < 0.18) {
-    whiteVisible[i] = false;
-    retired = true;
+  if (stage >= 2 && countVisibleWhiteKeys() > 6 && random(1) < 0.18) { // Human logic
+    whiteVisible[i] = false; // Human logic
+    retired = true; // Human logic
   }
 
   println("White key " + i + " clicked - " + whiteNames[i] +
           " (drawn black) | Played: " + playedName +
           formatFlawText(lied, delayMs, haunted, retired) +
           " | Press Count: " + pressCount +
-          " | Stage: " + stage);
+          " | Stage: " + stage); // Shared
 
-  playKeyWithFlaws(whiteOsc[i], playedFreq, delayMs, haunted);
-  maybeTriggerYouTubeSurprise();
+  playKeyWithFlaws(whiteOsc[i], playedFreq, delayMs, haunted); // Shared
+  maybeTriggerYouTubeSurprise(); // Human logic
 }
 
-void updateStage() {
-  int previousStage = stage;
+void updateStage() { // Human logic
+  int previousStage = stage; // Human logic
 
-  if (pressCount <= 10) {
-    stage = 1;
-  } else if (pressCount <= 19) {
-    stage = 2;
+  if (pressCount <= 10) { // Human logic
+    stage = 1; // Human logic
+  } else if (pressCount <= 19) { // Human logic
+    stage = 2; // Human logic
   } else {
-    stage = 3;
+    stage = 3; // Human logic
   }
 
-  if (!stage2FlawsInitialized && stage >= 2) {
-    initializeStage2Flaws();
+  if (!stage2FlawsInitialized && stage >= 2) { // Human logic
+    initializeStage2Flaws(); // Human logic
   }
 
-  if (!stage3FlawsInitialized && stage >= 3) {
-    initializeStage3Flaws();
+  if (!stage3FlawsInitialized && stage >= 3) { // Human logic
+    initializeStage3Flaws(); // Human logic
   }
 
-  if (stage != previousStage) {
-    println("=== Stage changed to " + stage + " ===");
+  if (stage != previousStage) { // Human logic
+    println("=== Stage changed to " + stage + " ==="); // Shared
   }
 }
 
-void initializeStage2Flaws() {
-  stage2FlawsInitialized = true;
+void initializeStage2Flaws() { // Human logic
+  stage2FlawsInitialized = true; // Human logic
 
-  markRandomBrokenWhiteKeys(2);
-  markRandomBrokenBlackKeys(1);
+  markRandomBrokenWhiteKeys(2); // Human logic
+  markRandomBrokenBlackKeys(1); // Human logic
 }
 
-void initializeStage3Flaws() {
-  stage3FlawsInitialized = true;
+void initializeStage3Flaws() { // Human logic
+  stage3FlawsInitialized = true; // Human logic
 
-  driftVX = 0.35;
-  driftVY = 0.08;
+  driftVX = 0.35; // Human logic
+  driftVY = 0.08; // Human logic
 }
 
-void markRandomBrokenWhiteKeys(int amount) {
-  int marked = 0;
+void markRandomBrokenWhiteKeys(int amount) { // Human logic
+  int marked = 0; // Shared
 
-  while (marked < amount) {
-    int i = int(random(numWhiteKeys));
-    if (!whiteBroken[i]) {
-      whiteBroken[i] = true;
-      marked++;
+  while (marked < amount) { // Shared
+    int i = int(random(numWhiteKeys)); // Shared
+    if (!whiteBroken[i]) { // Shared
+      whiteBroken[i] = true; // Human logic
+      marked++; // Shared
     }
   }
 }
 
-void markRandomBrokenBlackKeys(int amount) {
-  int marked = 0;
+void markRandomBrokenBlackKeys(int amount) { // Human logic
+  int marked = 0; // Shared
 
-  while (marked < amount) {
-    int b = int(random(numBlackKeys));
-    if (!blackBroken[b]) {
-      blackBroken[b] = true;
-      marked++;
+  while (marked < amount) { // Shared
+    int b = int(random(numBlackKeys)); // Shared
+    if (!blackBroken[b]) { // Shared
+      blackBroken[b] = true; // Human logic
+      marked++; // Shared
     }
   }
 }
 
-int countVisibleWhiteKeys() {
-  int count = 0;
-  for (int i = 0; i < numWhiteKeys; i++) {
-    if (whiteVisible[i]) {
-      count++;
+int countVisibleWhiteKeys() { // AI-assisted
+  int count = 0; // AI-assisted
+  for (int i = 0; i < numWhiteKeys; i++) { // AI-assisted
+    if (whiteVisible[i]) { // Shared
+      count++; // AI-assisted
     }
   }
-  return count;
+  return count; // AI-assisted
 }
 
-int countVisibleBlackKeys() {
-  int count = 0;
-  for (int b = 0; b < numBlackKeys; b++) {
-    if (blackVisible[b]) {
-      count++;
+int countVisibleBlackKeys() { // AI-assisted
+  int count = 0; // AI-assisted
+  for (int b = 0; b < numBlackKeys; b++) { // AI-assisted
+    if (blackVisible[b]) { // Shared
+      count++; // AI-assisted
     }
   }
-  return count;
+  return count; // AI-assisted
 }
 
-float getRandomDifferentFrequency(float originalFreq) {
-  float candidate = originalFreq;
+float getRandomDifferentFrequency(float originalFreq) { // Shared
+  float candidate = originalFreq; // Shared
 
-  while (abs(candidate - originalFreq) < 0.001) {
-    int totalNotes = whiteFreq.length + blackFreq.length;
-    int randomIndex = int(random(totalNotes));
+  while (abs(candidate - originalFreq) < 0.001) { // Shared
+    int totalNotes = whiteFreq.length + blackFreq.length; // AI-assisted
+    int randomIndex = int(random(totalNotes)); // Shared
 
-    if (randomIndex < whiteFreq.length) {
-      candidate = whiteFreq[randomIndex];
+    if (randomIndex < whiteFreq.length) { // Shared
+      candidate = whiteFreq[randomIndex]; // Shared
     } else {
-      candidate = blackFreq[randomIndex - whiteFreq.length];
+      candidate = blackFreq[randomIndex - whiteFreq.length]; // Shared
     }
   }
 
-  return candidate;
+  return candidate; // Shared
 }
 
-String getNoteNameForFrequency(float freq) {
-  for (int i = 0; i < whiteFreq.length; i++) {
-    if (abs(whiteFreq[i] - freq) < 0.001) {
-      return whiteNames[i];
+String getNoteNameForFrequency(float freq) { // AI-assisted
+  for (int i = 0; i < whiteFreq.length; i++) { // AI-assisted
+    if (abs(whiteFreq[i] - freq) < 0.001) { // AI-assisted
+      return whiteNames[i]; // AI-assisted
     }
   }
 
-  for (int b = 0; b < blackFreq.length; b++) {
-    if (abs(blackFreq[b] - freq) < 0.001) {
-      return blackNames[b];
+  for (int b = 0; b < blackFreq.length; b++) { // AI-assisted
+    if (abs(blackFreq[b] - freq) < 0.001) { // AI-assisted
+      return blackNames[b]; // AI-assisted
     }
   }
 
-  return "?";
+  return "?"; // AI-assisted
 }
 
-String formatFlawText(boolean lied, int delayMs, boolean haunted, boolean retired) {
-  String text = "";
+String formatFlawText(boolean lied, int delayMs, boolean haunted, boolean retired) { // Shared
+  String text = ""; // AI-assisted
 
-  if (lied) {
-    text += " | Note Liar";
+  if (lied) { // Human logic
+    text += " | Note Liar"; // Human logic
   }
 
-  if (delayMs > 0) {
-    text += " | Sound Delay " + delayMs + "ms";
+  if (delayMs > 0) { // Human logic
+    text += " | Sound Delay " + delayMs + "ms"; // Human logic
   }
 
-  if (haunted) {
-    text += " | Audio Haunting";
+  if (haunted) { // Human logic
+    text += " | Audio Haunting"; // Human logic
   }
 
-  if (retired) {
-    text += " | Key Retirement";
+  if (retired) { // Human logic
+    text += " | Key Retirement"; // Human logic
   }
 
-  return text;
+  return text; // Shared
 }
 
-void maybeTriggerYouTubeSurprise() {
-  if (stage >= 3 && enableYouTubeSurprise && random(1) < 0.04) {
+void maybeTriggerYouTubeSurprise() { // Human logic
+  if (stage >= 3 && enableYouTubeSurprise && random(1) < 0.04) { // Human logic
     try {
-      if (Desktop.isDesktopSupported()) {
-        Desktop.getDesktop().browse(new URI("https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
+      if (Desktop.isDesktopSupported()) { // AI-assisted
+        Desktop.getDesktop().browse(new URI("https://www.youtube.com/watch?v=dQw4w9WgXcQ")); // Human logic
       }
     }
     catch (Exception e) {
-      println("YouTube Surprise failed: " + e.getMessage());
+      println("YouTube Surprise failed: " + e.getMessage()); // Shared
     }
   }
 }
 
-void drawStageInfo() {
-  String stageLabel = "";
+void drawStageInfo() { // Shared
+  String stageLabel = ""; // Shared
 
-  if (stage == 1) {
-    stageLabel = "Stage 1: Trustworthy";
-  } else if (stage == 2) {
-    stageLabel = "Stage 2: Something Is Wrong";
+  if (stage == 1) { // Human logic
+    stageLabel = "Stage 1: Trustworthy"; // Human logic
+  } else if (stage == 2) { // Human logic
+    stageLabel = "Stage 2: Something Is Wrong"; // Human logic
   } else {
-    stageLabel = "Stage 3: Full Chaos";
+    stageLabel = "Stage 3: Full Chaos"; // Human logic
   }
 
-  fill(255);
-  stroke(0);
-  strokeWeight(2);
-  rect(15, 15, 275, 65, 10);
+  fill(255); // AI-assisted
+  stroke(0); // AI-assisted
+  strokeWeight(2); // AI-assisted
+  rect(15, 15, 275, 65, 10); // AI-assisted
 
-  fill(0);
-  textAlign(LEFT, TOP);
-  textSize(18);
-  text("Press Count: " + pressCount, 25, 25);
-  text(stageLabel, 25, 50);
+  fill(0); // AI-assisted
+  textAlign(LEFT, TOP); // AI-assisted
+  textSize(18); // AI-assisted
+  text("Press Count: " + pressCount, 25, 25); // Shared
+  text(stageLabel, 25, 50); // Shared
 }
 
-void playKeyWithFlaws(final SinOsc osc, final float freq, final int delayMs, final boolean haunted) {
-  final PApplet sketchRef = this;
+void playKeyWithFlaws(final SinOsc osc, final float freq, final int delayMs, final boolean haunted) { // Shared
+  final PApplet sketchRef = this; // AI-assisted
 
-  new Thread(new Runnable() {
-    public void run() {
+  new Thread(new Runnable() { // AI-assisted
+    public void run() { // AI-assisted
       try {
-        if (delayMs > 0) {
-          Thread.sleep(delayMs);
+        if (delayMs > 0) { // Human logic
+          Thread.sleep(delayMs); // Shared
         }
       }
       catch (InterruptedException e) {
       }
 
-      if (haunted) {
-        SinOsc hauntOsc = new SinOsc(sketchRef);
-        hauntOsc.freq(freq);
-        hauntOsc.amp(0.6);
-        hauntOsc.play();
-        hauntingOscs.add(hauntOsc);
+      if (haunted) { // Human logic
+        SinOsc hauntOsc = new SinOsc(sketchRef); // AI-assisted
+        hauntOsc.freq(freq); // AI-assisted
+        hauntOsc.amp(0.6); // AI-assisted
+        hauntOsc.play(); // AI-assisted
+        hauntingOscs.add(hauntOsc); // Human logic
       } else {
-        osc.stop();
-        osc.freq(freq);
-        osc.amp(0.6);
-        osc.play();
+        osc.stop(); // AI-assisted
+        osc.freq(freq); // AI-assisted
+        osc.amp(0.6); // AI-assisted
+        osc.play(); // AI-assisted
 
         try {
-          Thread.sleep(250);
+          Thread.sleep(250); // AI-assisted
         }
         catch (InterruptedException e) {
         }
 
-        osc.stop();
+        osc.stop(); // AI-assisted
       }
     }
   }).start();
-}
-
-// Testing helper: press R to stop all haunted notes
-void keyPressed() {
-  if (key == 'r' || key == 'R') {
-    stopAllHaunting();
-  }
-}
-
-void stopAllHaunting() {
-  for (SinOsc osc : hauntingOscs) {
-    osc.stop();
-  }
-  hauntingOscs.clear();
-  println("All haunted notes stopped.");
 }
