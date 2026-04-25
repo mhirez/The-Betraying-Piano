@@ -115,8 +115,8 @@ boolean stage3FlawsInitialized = false; // Human logic
 boolean enableYouTubeSurprise = true; // Human logic
 
 void setup() { // Shared
-  size(900, 500); // AI-assisted
-  surface.setTitle("The Betraying Piano"); // Shared
+  size(900, 500); // Human Logic
+  surface.setTitle("The Betraying Piano"); // Human Logic
 
   cursorImg = loadImage("CURSOR.png"); // AI-assisted
   noCursor(); // Human logic
@@ -170,7 +170,7 @@ void setup() { // Shared
 }
 
 void draw() { // Shared
-  background(137, 207, 240); // AI-assisted
+  background(137, 207, 240); // Human Logic
 
   updateCursor(); // Human logic
   updateDrift(); // Human logic
